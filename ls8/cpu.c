@@ -19,31 +19,34 @@ void cpu_ram_write(struct cpu *cpu, int index, unsigned char value)
 /**
  * Load the binary bytes from a .ls8 source file into a RAM array
  */
-void cpu_load(struct cpu *cpu, char *file )
+void cpu_load(struct cpu *cpu, char *file)
 {
   char line[1024];
-	int address = 0;
+  int address = 0;
   FILE *fp = fopen(file, "r");
 
-  if (fp == NULL) {
-		fprintf(stderr, "file not found\n");
-		exit(1);
-	}
+  if (fp == NULL)
+  {
+    fprintf(stderr, "file not found\n");
+    exit(1);
+  }
 
-	while (fgets(line, 1024, fp) != NULL) {
-		char *endptr;
+  while (fgets(line, 1024, fp) != NULL)
+  {
+    char *endptr;
 
-		unsigned char v = strtoul(line, &endptr, 2);
+    unsigned char v = strtoul(line, &endptr, 2);
 
-		if (endptr == line) {
-			continue;
-		}
+    if (endptr == line)
+    {
+      continue;
+    }
 
-		cpu->ram[address] = v;
-		address++;
-	}
+    cpu->ram[address] = v;
+    address++;
+  }
 
-	fclose(fp);
+  fclose(fp);
 }
 
 /**
@@ -54,7 +57,11 @@ void alu(struct cpu *cpu, enum alu_op op, unsigned char regA, unsigned char regB
   switch (op)
   {
   case ALU_MUL:
-    // TODO
+    cpu->registers[regA] = cpu->registers[regA] * cpu->registers[regB];
+    break;
+
+  case ALU_ADD:
+    cpu->registers[regA] = cpu->registers[regA] + cpu->registers[regB];
     break;
 
     // TODO: implement more ALU ops
@@ -76,6 +83,7 @@ void cpu_run(struct cpu *cpu)
     // TODO
     // 1. Get the value of the current instruction (in address PC).
     cpu->ir = cpu_ram_read(cpu, cpu->pc);
+
     cpu->pc++;
     // 2. Figure out how many operands this next instruction requires
     if (CHECK_BIT(cpu->ir, 7))
@@ -121,8 +129,38 @@ void cpu_run(struct cpu *cpu)
       running = 0;
       break;
 
+    case MUL:
+      alu(cpu, ALU_MUL, first_operand, second_operand);
+      break;
+
+    case ADD:
+      alu(cpu, ALU_ADD, first_operand, second_operand);
+      break;
+
+    case PUSH:
+      cpu->registers[7] -= 1;
+      cpu->ram[cpu->registers[7]] = cpu->registers[first_operand];
+      break;
+
+    case POP:
+      cpu->registers[first_operand] = cpu->ram[cpu->registers[7]];
+      cpu->registers[7] += 1;
+      break;
+
+    case CALL:
+      cpu->registers[7] -= 1;
+      cpu->ram[cpu->registers[7]] = cpu->pc;
+      cpu->pc = 24;
+      break;
+
+    case RET:
+      cpu->pc = cpu->ram[cpu->registers[7]];
+      cpu->registers[7] += 1;
+      break;
+
     default:
       printf("BLALALLLARRHRGHGHGHH!!");
+      running = 0;
     }
     // 5. Do whatever the instruction should do according to the spec.
     // 6. Move the PC to the next instruction.
@@ -141,6 +179,7 @@ void cpu_init(struct cpu *cpu)
   cpu->mdr = 0;
   cpu->fl = 0;
 
-  memset(cpu->registers, 0, 8);
+  memset(cpu->registers, 0, 6);
+  cpu->registers[7] = 0xF4;
   memset(cpu->ram, 0, 256);
 }
