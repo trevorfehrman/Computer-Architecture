@@ -64,6 +64,27 @@ void alu(struct cpu *cpu, enum alu_op op, unsigned char regA, unsigned char regB
     cpu->registers[regA] = cpu->registers[regA] + cpu->registers[regB];
     break;
 
+  case ALU_CMP:
+    if (cpu->registers[regA] == cpu->registers[regB])
+    {
+      // cpu->fl = cpu->fl | 00000001;
+      cpu->fl = cpu->fl | 1;
+    }
+    else if (cpu->registers[regA] > cpu->registers[regB])
+    {
+      // cpu->fl = cpu->fl | 00000010;
+      cpu->fl = cpu->fl | 2;
+    }
+    else
+    {
+      // cpu->fl = cpu->fl | 00000100;
+      cpu->fl = cpu->fl | 4;
+    }
+
+    break;
+  default:
+    printf("something has gone terribly wrong");
+
     // TODO: implement more ALU ops
   }
 }
@@ -150,12 +171,36 @@ void cpu_run(struct cpu *cpu)
     case CALL:
       cpu->registers[7] -= 1;
       cpu->ram[cpu->registers[7]] = cpu->pc;
-      cpu->pc = 24;
+      cpu->pc = cpu->registers[first_operand];
       break;
 
     case RET:
       cpu->pc = cpu->ram[cpu->registers[7]];
       cpu->registers[7] += 1;
+      break;
+
+    case JMP:
+      cpu->pc = cpu->registers[first_operand];
+      break;
+
+    case CMP:
+      alu(cpu, ALU_CMP, first_operand, second_operand);
+      break;
+
+    case JLE:
+      if (CHECK_BIT(cpu->fl, 2) || (CHECK_BIT(cpu->fl, 0)))
+      {
+        cpu->pc = cpu->registers[first_operand];
+      }
+      cpu->fl = cpu->fl & 00000000;
+      break;
+
+    case PRA:
+      printf("%c", cpu->registers[first_operand]);
+      break;
+
+    case INC:
+      cpu->registers[first_operand] += 1;
       break;
 
     default:
