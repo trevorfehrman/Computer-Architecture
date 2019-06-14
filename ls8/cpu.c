@@ -82,6 +82,31 @@ void alu(struct cpu *cpu, enum alu_op op, unsigned char regA, unsigned char regB
     }
 
     break;
+
+  case ALU_AND:
+    cpu->registers[regA] = cpu->registers[regA] & cpu->registers[regB];
+    break;
+
+  case ALU_OR:
+    cpu->registers[regA] = cpu->registers[regA] | cpu->registers[regB];
+    break;
+
+  case ALU_XOR:
+    cpu->registers[regA] = cpu->registers[regA] ^ cpu->registers[regB];
+    break;
+
+  case ALU_NOT:
+    cpu->registers[regA] = !(cpu->registers[regA]);
+    break;
+
+  case ALU_SHL:
+    cpu->registers[regA] = cpu->registers[regA] << cpu->registers[regB];
+    break;
+
+  case ALU_SHR:
+    cpu->registers[regA] = cpu->registers[regA] >> cpu->registers[regB];
+    break;
+
   default:
     printf("something has gone terribly wrong");
 
@@ -195,12 +220,50 @@ void cpu_run(struct cpu *cpu)
       cpu->fl = cpu->fl & 00000000;
       break;
 
+    case JEQ:
+      if (CHECK_BIT(cpu->fl, 0))
+      {
+        cpu->pc = cpu->registers[first_operand];
+      }
+      break;
+
+    case JNE:
+      if (!CHECK_BIT(cpu->fl, 0))
+      {
+        cpu->pc = cpu->registers[first_operand];
+      }
+      break;
+
     case PRA:
       printf("%c", cpu->registers[first_operand]);
       break;
 
     case INC:
       cpu->registers[first_operand] += 1;
+      break;
+
+    case AND:
+      alu(cpu, ALU_AND, first_operand, second_operand);
+      break;
+
+    case OR:
+      alu(cpu, ALU_OR, first_operand, second_operand);
+      break;
+
+    case XOR:
+      alu(cpu, ALU_XOR, first_operand, second_operand);
+      break;
+
+    case NOT:
+      alu(cpu, ALU_NOT, first_operand, second_operand);
+      break;
+
+    case SHL:
+      alu(cpu, ALU_SHL, first_operand, second_operand);
+      break;
+      
+    case SHR:
+      alu(cpu, ALU_SHR, first_operand, second_operand);
       break;
 
     default:

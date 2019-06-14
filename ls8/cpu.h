@@ -23,7 +23,14 @@ enum alu_op
 {
   ALU_MUL,
   ALU_ADD,
-  ALU_CMP
+  ALU_CMP,
+  ALU_AND,
+  ALU_OR,
+  ALU_XOR,
+  ALU_NOT,
+  ALU_SHL,
+  ALU_SHR,
+  ALU_MOD
   // Add more here
 };
 
@@ -49,6 +56,14 @@ enum alu_op
 #define JLT 0b01011000
 #define PRA 0b01001000
 #define INC 0b01100101
+#define JEQ 0b01010101
+#define JNE 0b01010110
+#define AND 0b10101000
+#define OR 0b10101010
+#define XOR 0b10101011
+#define NOT 0b01101001
+#define SHL 0b10101100
+#define SHR 0b10101101
 
 // TODO: more instructions here. These can be used in cpu_run().
 
